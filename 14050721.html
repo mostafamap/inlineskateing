@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>محاسبه‌گر میزان مصرف کالری در اسکیت‌سواری</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 10% 0%, #dbeafe, transparent 45%),
+      radial-gradient(circle at 90% 10%, #ccfbf1, transparent 45%),
+      linear-gradient(135deg, #eef6ff, #f0fdf4 50%, #fefce8);
+    color: #0f172a;
+    font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .app { max-width: 1000px; margin: 0 auto; }
+
+  /* ===== اسلایدر بالای صفحه ===== */
+  .slider {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 6px auto 22px;
+    border-radius: 26px;
+    overflow: hidden;
+    box-shadow: 0 22px 55px rgba(15, 23, 42, 0.22);
+    border: 4px solid #fff;
+    aspect-ratio: 16 / 7.4;
+    background: #e2e8f0;
+  }
+
+  .slider-track {
+    display: flex;
+    width: 200%;
+    height: 100%;
+    animation: slideShow 12s ease-in-out infinite;
+  }
+
+  .slider-track img {
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @keyframes slideShow {
+    0%, 42%   { transform: translateX(0); }
+    50%, 92%  { transform: translateX(50%); }
+    100%      { transform: translateX(0); }
+  }
+
+  /* ===== تیتر ===== */
+  .hero h1 {
+    margin: 0 0 10px;
+    font-size: clamp(1.5rem, 4.2vw, 2.5rem);
+    background: linear-gradient(135deg, #0284c7, #0d9488, #65a30d);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 900;
+  }
+
+  .hero p {
+    margin: 0 auto 6px;
+    max-width: 620px;
+    color: #475569;
+    line-height: 1.9;
+  }
+
+  /* ===== کارت‌ها ===== */
+  .card,
+  .results {
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 26px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.1);
+    padding: clamp(16px, 3vw, 30px);
+    margin: 18px 0;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+    text-align: right;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  input, select {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font: inherit;
+    background: #fff;
+    color: #0f172a;
+    outline: none;
+    transition: 0.2s;
+    text-align: right;
+  }
+
+  input:focus, select:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
+  }
+
+  input[type="text"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* ===== دکمه ===== */
+  .btn {
+    width: 100%;
+    border: 0;
+    border-radius: 16px;
+    padding: 15px 18px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #0284c7, #0d9488);
+    color: white;
+    font: inherit;
+    font-weight: 800;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: 0 12px 25px rgba(2, 132, 199, 0.28);
+    transition: 0.2s;
+  }
+
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+  .btn:active { transform: translateY(0); }
+
+  .hint {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin: 12px 0 0;
+    line-height: 1.8;
+  }
+
+  /* ===== نتایج ===== */
+  .results h2 {
+    margin: 0 0 18px;
+    font-size: 1.35rem;
+    color: #0f172a;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+  }
+
+  .metric {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 120px;
+    text-align: center;
+    transition: 0.2s;
+  }
+
+  .metric:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+  }
+
+  .metric span {
+    color: #475569;
+    font-size: 0.9rem;
+  }
+
+  .metric strong {
+    font-size: clamp(1.25rem, 2.5vw, 1.7rem);
+    color: #0f172a;
+    line-height: 1.4;
+  }
+
+  .metric small {
+    color: #64748b;
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  .bmi-card {
+    background: linear-gradient(135deg, #e0f2fe, #ccfbf1);
+    border-color: #bae6fd;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .badge.normal { background: #dcfce7; color: #166534; }
+  .badge.under  { background: #fef3c7; color: #92400e; }
+  .badge.over   { background: #ffedd5; color: #9a3412; }
+  .badge.obese  { background: #fee2e2; color: #991b1b; }
+
+  .highlight {
+    background: linear-gradient(135deg, #ecfeff, #f0fdf4);
+    border-color: #a5f3fc;
+  }
+
+  /* ===== جزئیات ===== */
+  .info {
+    margin-top: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 14px 18px;
+    background: #f8fafc;
+    text-align: right;
+  }
+
+  .info summary {
+    cursor: pointer;
+    font-weight: 800;
+    color: #0f172a;
+    text-align: center;
+  }
+
+  .info ul {
+    margin: 14px 0 0;
+    padding-right: 20px;
+    color: #475569;
+    line-height: 2;
+    text-align: right;
+  }
+
+  /* ===== بخش حقوق + لوگوی گردان ===== */
+  .credit-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+    padding: 22px 16px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #f1f5f9, #ecfeff);
+    border: 1px solid #e2e8f0;
+  }
+
+  .logo-spin {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff;
+    box-shadow: 0 10px 25px rgba(2, 132, 199, 0.3);
+    animation: spin 14s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .credit {
+    color: #475569;
+    font-size: 0.83rem;
+    line-height: 2;
+    max-width: 720px;
+    text-align: center;
+  }
+
+  .credit a {
+    color: #0369a1;
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .credit a:hover { text-decoration: underline; }
+
+  .error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin: 10px 0;
+    font-weight: 700;
+    line-height: 1.8;
+    text-align: center;
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 480px) {
+    body { padding: 10px; }
+    .card, .results { border-radius: 18px; }
+    input, select { padding: 11px 12px; }
+    .logo-spin { width: 88px; height: 88px; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+
+  <!-- اسلایدر بالای صفحه -->
+  <div class="slider">
+    <div class="slider-track">
+      <img
+        src="https://lh3.googleusercontent.com/rd-d/ALs6j_FGmOAyNTDPZ_ui55VvLc6wagU4aJ28bLEYB1AnoPZ0GWvJ2-FlNVr4LjfeQAh2hGMj5NnXWrIpyW2RLSVBPXoI26RmQznwuYjUhj2xQafpUEuDCm_vhxbFbvAnmH45sDUBUtV4PTxx0hcxYkxCegejGEYaQZ-SuUKgGAT6tTix42b46WOPErnTglR-wXpiO-G5l52YHR43jU_XgejhHDmOOEOWZ3DoJRSbQIQb8t1mk8Rpqb9KEvmftXHdQB38zzjEAzEE4Pm2N8Sm7dM06n9bWtSjFaXsTPtXHGx7CCtpQD8-i_ZW6hcfGIHRho-WzOZYZQeyCHB34FDHz7gN01GGq_zaMStV8ARZ3LlWoyiPfI7Pz1oxf0rxDbtt4-5BTGGKgOE3xkVPVB4L8EUzD34Fu3BP2bme9v_Sox-mUdcWWEQkEk0X-PSdm_Ytp6HKg2-qQOBOuGDmaNC3isuYEPa6EoHDZEIdIW6l1DAC9GpILcEaCbJiVKMdw6pMhQ-wdiAnULEvANmjlOf1zKIPQtyW2vol2jV-71jew5-fuGeK1z6s277_uzswVTQLT0Vzk0t4AWdaiSz3gSM4MY7U1lYnaNq6K0gSTBX_l3XMqtlxetEWgnHLuayl8sr1o89asQsIjMLpkbsCO9Dplg-OdvCDpz_hq4_WF3f1UxwzSOYLrp6XGxDVp6ziZotTdzGY5U7zOUj0ZoeK1enXeVgxJMCytg7uoQugIAZfIPOMIZaiAhGluUeCV_awN7amSDkKnrjXqFF7v913J67wEENuoIKUChbAGZ2AbX6UdmVBenrIIllK7lz8AbQ82GH3fj5UXbHR2KkE_kzNW2B8bu8htWCUxuN750P1ERRBRpl8qkJOqFNwHY_hmHlRJ8RM2DV9x8Pp9x1ct89M8C3yn51UxglrbE56kBRMI1cbUVzbg5lJgD5wywLZBPwJqn6neoPcEGh5AxchiEswcD5NCoUwQ3KR7fMjPMfgbp_8WxqdzAWbZDtoIkNEvJ9rCh3tp3oRT9W_JufXEAzTTCUBOyHvfddKMCgH3RY8RuyQatN7SfSmSNKEpEuUczXnrjzRDBOutrm0vTtd8CDqxzxc9hAZ_WwEdjrQGzjU5sz5N0T327TE3r-LS77IEDTZ4pC-2C991FaGwVdlCih8=w1600-h739?auditContext=prefetch"
+        alt="اسکیت سواری ۱" loading="lazy" />
+      <img
+        src="https://lh3.googleusercontent.com/rd-d/ALs6j_HrDz8DasSaUp71-HWew7NZq3Dn2MunJu76-B75cmQEigE7au0LVXyOV6p6YQv2LBZu_K8APyHdAw1MvhF0iicoeJo2wpK1MA2v7CECCsCbni2IovvrIrwDUZ4V8q_j_donwS2161EZrygbC0xU9tFpOJ8aElB_cdRXazwvlMGf60ASdYDIg2D4Pwh3LjjS10M1uQnPJj-JNi2NinlksUvr5DfoKo2dp0ZFrPZ9qr482i1px1C4NvKZ9jonV2O6_tMKC6Dz3UESGcUH5NawIxb1sWa1wi66s8zBoAR8EUoxwTS3779WlLDpXTji0Ro_QJdS_oMYR1yjz4_jCA39uDbSw_5HPp5AbOahDYit6b67tUI4EFOfx6jHft57rKD3xdMe3eIS0vEd23nsES9zQ6aoXy9sz1t1H7QwafKerNukVOml1E7gJ-6jtMbIvZzX4QHzPtti7VuNsSYRceASJE0lrmDA3W_l_GSW3KowlVoz_YnVFi4VZ-UP0VRYAQKqjnT990baTKeyiIYKl2zvUG3Bitwlq0iEwL3k9ZrtpP03xg09S3wr5m9afAsU4LPspdRaxNwVl-_j0cE6efhbehMB5eBOWbrBYxDk3KXIDn5_eTvgwsGYf12YNOZyKTHPA2qyNy__3mOKLqKUKcfQVkT9ci3LjwSv7i7PTWap6DjOxG-_41IJBFTOh6nsIkkAjYJgUhyyUZKsEOn7LXQ5xjjm80rfUECbHMF7xgjh0BlwnVEze2UotbMeTibACOXSKQY3FYTvACm96pISYca3y2pRR-bouQZ9PLja_uIwCSvqkxYV9l6QhdfT2C5FDJCo6jZp2Q3OEtPz4Op7FY9r5-dLgmOBB6hVrPhgVjwLIYds5CYokLvb0s4u6iCAHKs72K3stwjL0ctQX2ywUfSilpGZ_x0HqWsS8gHtiLfO_CbQD-WmjxoF67ycPH9N5Kyog4Ya566XTFEpL-YzYnMyaSq4NBwjbMBydw8J5nosUjnJ9tW9rnf6Qw4Hm7ENutDeo6mvtN2nzV0uSmKr-WL6DMnACeTWY4ca9aIHovYKzm1lLBN3YE2viah2GimDxb-422eRisGHnyX2_ET1WBc0pksTeW9YzfKzFwN5vgEwSWbIv1tKL6m3JkPk4NrMaAVxITDzszcDaWhFJQ=w1600-h739?auditContext=prefetch"
+        alt="اسکیت سواری ۲" loading="lazy" />
+    </div>
+  </div>
+
+  <header class="hero">
+    <h1>محاسبه‌گر میزان مصرف کالری در اسکیت‌سواری</h1>
+    <p>BMI، محدوده وزن طبیعی، کالری روزانه و کالری سوزی اسکیت را حساب کن.</p>
+  </header>
+
+  <form id="calcForm" class="card" novalidate>
+    <div class="grid">
+      <label>
+        وزن (کیلوگرم)
+        <input id="weight" type="text" inputmode="decimal" placeholder="مثلاً 70" />
+      </label>
+
+      <label>
+        قد (سانتی‌متر)
+        <input id="height" type="text" inputmode="decimal" placeholder="مثلاً 180" />
+      </label>
+
+      <label>
+        جنسیت
+        <select id="gender">
+          <option value="male" selected>مرد</option>
+          <option value="female">زن</option>
+        </select>
+      </label>
+
+      <label>
+        نوع اسکیت سواری
+        <select id="skateType">
+          <option value="inline" selected>اینلاین اسکیتینگ</option>
+          <option value="skateboard">اسکیتبوردینگ</option>
+        </select>
+      </label>
+
+      <label>
+        مدت زمان (دقیقه)
+        <input id="duration" type="text" inputmode="numeric" placeholder="مثلاً 60" />
+      </label>
+
+      <label>
+        شدت اسکیت سواری
+        <select id="intensity"></select>
+      </label>
+
+      <label>
+        مسیر اسکیت سواری
+        <select id="route">
+          <option value="1" selected>زمین هموار و صاف</option>
+          <option value="1.2">زمین هموار سنگفرش (+۲۰٪)</option>
+          <option value="1.4">زمین با پستی بلندی زیاد (+۴۰٪)</option>
+          <option value="1.6">زمین در مسیر ناهموار (+۶۰٪)</option>
+        </select>
+      </label>
+    </div>
+
+    <button type="submit" class="btn">محاسبه کن</button>
+    <p class="hint">با زدن Enter هم محاسبه می‌شود. اعداد فارسی و انگلیسی پذیرفته می‌شوند.</p>
+  </form>
+
+  <p id="error" class="error hidden"></p>
+
+  <section id="results" class="results hidden" aria-live="polite">
+    <h2>نتایج</h2>
+
+    <div class="result-grid">
+      <div class="metric bmi-card">
+        <span>شاخص توده بدنی (BMI)</span>
+        <strong id="bmiValue">--</strong>
+        <span id="bmiCategory" class="badge">--</span>
+      </div>
+
+      <div class="metric">
+        <span>محدوده وزن طبیعی برای شما</span>
+        <strong id="normalRange">--</strong>
+      </div>
+
+      <div class="metric">
+        <span>کالری مورد نیاز روزانه</span>
+        <strong id="dailyCalories">--</strong>
+        <small>تخمین تقریبی بر اساس وزن و جنسیت</small>
+      </div>
+
+      <div class="metric">
+        <span>اضافه وزن یا کمبود وزن شما</span>
+        <strong id="weightDiff">--</strong>
+        <small id="weightDiffMsg"></small>
+      </div>
+
+      <div class="metric">
+        <span>کالری باید بسوزانی / دریافت کنی</span>
+        <strong id="calorieAction">--</strong>
+        <small id="calorieActionMsg"></small>
+      </div>
+
+      <div class="metric highlight">
+        <span>کالری مصرفی به واسطه اسکیت سواری</span>
+        <strong id="skateCalories">--</strong>
+        <small id="skateDetails"></small>
+      </div>
+
+      <div class="metric">
+        <span>زمان رسیدن به وزن طبیعی</span>
+        <strong id="daysToNormal">--</strong>
+        <small id="daysMsg"></small>
+      </div>
+    </div>
+
+    <details class="info">
+      <summary>عوامل کلیدی مؤثر بر سوزاندن کالری</summary>
+      <ul>
+        <li>وزن بدن: افراد سنگین‌تر کالری بیشتری می‌سوزانند زیرا برای جابجایی جرم بیشتر به انرژی بیشتری نیاز است.</li>
+        <li>سرعت اسکیت: سرعت‌های بالاتر به دلیل مقاومت باد و نیاز به قدرت، به طور چشمگیری باعث افزایش کالری‌سوزی می‌شوند.</li>
+        <li>زمین: تپه‌ها و سطوح ناهموار به تلاش بیشتری نیاز دارند و کالری‌سوزی را ۱۰ تا ۲۵ درصد افزایش می‌دهند.</li>
+        <li>تکنیک اسکیت: حرکات موثر، مسافت و کالری سوزی را در هر تلاش به حداکثر می‌رسانند.</li>
+        <li>شرایط باد: بادهای مخالف می‌توانند تلاش را ۲۰ تا ۳۰ درصد افزایش دهند و باعث افزایش مصرف کالری شوند.</li>
+        <li>اندازه چرخ و بلبرینگ: چرخ‌های بزرگتر و بلبرینگ‌های باکیفیت، مقاومت غلتشی را کاهش می‌دهند اما سرعت‌های بالاتر را ممکن می‌سازند.</li>
+      </ul>
+    </details>
+  </section>
+
+  <footer class="credit-box">
+    <img
+      class="logo-spin"
+      src="https://lh3.googleusercontent.com/rd-d/ALs6j_HNMCoxZWNwoSNF6IXPHlfp52fzsJmeCOH70Kmt8C9Shbr7YEtRAhinQD4ysiOVPqBett1YzZ6qxAJ60O2M4KkBcdlz8neIetFO_Nsdcq8SVnBLHjYGHsRNR_LY8rtEpLxJzyhncOWicXdXaLnVqwPRBe_FLWOxiPJ1wpq17a0zkN3Y0xUqwsiruJRPja0pSbhbTGUmFWRXG5oqei_igzCk424tzpbhh8d_zUlsNFyJj6sHEt3Dujr6hSKoJb4e0SV-HWSsLr1xHif720NVENZb_xcy5rwNnhgJCwOUwiOaJe3tLn7qQX2roW1Sgm2GAIBTPLFj1HTuyd4gCpqHNYZcmdiN-ztkx_VR0VK_tUmbd7QVsvzrdX5cu3tmXFlENllEd4chAra7U0HnRRgIc9Mds-ndr16xmeroIz_-qT_QVrR5JDjHun0HBdmpFDRY6IRwmGy2BKELbIafav9SvbBSE9mkcQ2ME9Vkanr4WREcrA7SD38GYwyEzHrT0bub_0C3Ts-JRJjzRGr6P_ar9CkotmPhzwoY3FJFm6sJWX_Nr1etijDdDNt47rRPH8vln-RODmGYA2cnEVxqwn7GCTZ7tBKtQ9X4SclMm37ujhA8sfV0SfQfHdpDJV_SX3iP-UztD9FRC_ieCUJJd34ZNf4nQx8J7UnvEF5KNrjBmU_XwCJoNI49vWbRnhRdJgBdTMizZdbZgENTsLLiSGG1Ub3cVPoxNsghH88yxz7iQsxiDtuM1CUo6Jf5aCGVCR9rWM0zoaFAeIgEy9ZqCBqxiJyR8ajpqhdIagkduSLB0OXKOQ4jiM1BfpZ3evtzb-J0VOBSpdc9864MJCKqLWX0Pt1oAlrP4Rqbj5AwLd16Tn0EaZXUlUn9WTQUpCEFWiCaD6MagHaHPtKQmJKUa1BjzcXEcbl8Bn5qTICNxwwgl99TMqDnp2cmNJHXekXnKZp3pum_Pf9zN5N9V_2oZ-kxcs9N0MXYbVusgnJg1A3Asc4GxrR3iYYERwJzIS2Xs40z672gk3kcx8J0AEIhu8i-Lb7ZQ-32Iyo61XDGKSVFDbLc76IMgCrkYAjNT_C9Kl6SVqZJoSGPv_-aCFXt_hUOsxs_zS2QaGds3XY_gyKvAvG8nbA8JEkDG4JAJxoBtVDX4_R4gfFekShDow=w1600-h739?auditContext=prefetch"
+      alt="لوگو Inline Skating Developer" loading="lazy" />
+
+    <p class="credit">
+      داده‌ها براساس آخرین بروزرسانی از سایت
+      <a href="https://pacompendium.com/sports/" target="_blank" rel="noopener">pacompendium.com/sports</a>
+      و مبتنی بر مقاله
+      <a href="https://www.sciencedirect.com/science/article/pii/S2095254623001084" target="_blank" rel="noopener">ScienceDirect</a>
+      احصا شده است و حقوق استفاده از این ابزار برای
+      <a href="https://t.me/inlinecoach" target="_blank" rel="noopener">Inline Skating Developer</a>
+      توسعه‌دهنده اینلاین اسکیت محفوظ است.🍀🤞🌻
+    </p>
+  </footer>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const form = $("calcForm");
+  const weightInput = $("weight");
+  const heightInput = $("height");
+  const genderSelect = $("gender");
+  const skateType = $("skateType");
+  const durationInput = $("duration");
+  const intensity = $("intensity");
+  const route = $("route");
+  const errorBox = $("error");
+  const results = $("results");
+
+  const bmiValue = $("bmiValue");
+  const bmiCategory = $("bmiCategory");
+  const normalRange = $("normalRange");
+  const dailyCaloriesEl = $("dailyCalories");
+  const weightDiffEl = $("weightDiff");
+  const weightDiffMsg = $("weightDiffMsg");
+  const calorieAction = $("calorieAction");
+  const calorieActionMsg = $("calorieActionMsg");
+  const skateCaloriesEl = $("skateCalories");
+  const skateDetails = $("skateDetails");
+  const daysToNormal = $("daysToNormal");
+  const daysMsg = $("daysMsg");
+
+  const intensities = {
+    inline: [
+      { met: 7.5, speed: 14.4, label: "اینلاین اسکیتینگ با سرعت آرام (تفریحی) - ۱۴.۴ کیلومتر بر ساعت" },
+      { met: 9.8, speed: 17.7, label: "اینلاین اسکیتینگ با سرعت متوسط (تمرینی) - ۱۷.۷ کیلومتر بر ساعت" },
+      { met: 12.3, speed: 21.35, label: "اینلاین اسکیتینگ با سرعت بالا (تمرینی) - ۲۱ تا ۲۱.۷ کیلومتر بر ساعت" },
+      { met: 15.5, speed: 24, label: "اینلاین اسکیتینگ با حداکثر تلاش (رقابتی) - ۲۴ کیلومتر بر ساعت" }
+    ],
+    skateboard: [
+      { met: 5.0, speed: 8, label: "اسکیتبوردینگ با سرعت خیلی آرام (تفریحی)" },
+      { met: 6.8, speed: 13.3, label: "اسکیتبوردینگ با سرعت آرام - ۱۳.۳ کیلومتر بر ساعت" },
+      { met: 8.3, speed: 16.2, label: "اسکیتبوردینگ با سرعت متوسط - ۱۶.۲ کیلومتر بر ساعت" },
+      { met: 10.5, speed: 18.4, label: "اسکیتبوردینگ با سرعت بالا - ۱۸.۴ کیلومتر بر ساعت" }
+    ]
+  };
+
+  function normalizeNumber(value) {
+    if (!value) return "";
+    return value
+      .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+      .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+      .replace(/[٫,]/g, ".")
+      .replace(/[^\d.-]/g, "");
+  }
+
+  function fillIntensity() {
+    const type = skateType.value;
+    intensity.innerHTML = "";
+
+    intensities[type].forEach((item, index) => {
+      const option = document.createElement("option");
+      option.value = index;
+      option.dataset.speed = item.speed;
+      option.dataset.met = item.met;
+      option.textContent = item.label;
+      if (index === 0) option.selected = true;
+      intensity.appendChild(option);
+    });
+  }
+
+  fillIntensity();
+  skateType.addEventListener("change", fillIntensity);
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    errorBox.classList.add("hidden");
+
+    let weight = parseFloat(normalizeNumber(weightInput.value));
+    let heightCm = parseFloat(normalizeNumber(heightInput.value));
+    const duration = parseFloat(normalizeNumber(durationInput.value));
+
+    if (heightCm > 0 && heightCm < 3) heightCm *= 100;
+
+    if (
+      !Number.isFinite(weight) || weight <= 0 ||
+      !Number.isFinite(heightCm) || heightCm <= 0 ||
+      !Number.isFinite(duration) || duration <= 0
+    ) {
+      errorBox.textContent = "لطفاً وزن، قد و مدت زمان را به‌درستی وارد کنید.";
+      errorBox.classList.remove("hidden");
+      errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
+    const gender = genderSelect.value;
+    const heightM = heightCm / 100;
+    const bmi = weight / (heightM * heightM);
+
+    const minNormal = 18.5 * heightM * heightM;
+    const maxNormal = 24.9 * heightM * heightM;
+
+    let category = "", badgeClass = "", bmiColor = "";
+
+    if (bmi < 18.5) {
+      category = "کمبود وزن"; badgeClass = "under"; bmiColor = "#b45309";
+    } else if (bmi < 25) {
+      category = "وزن طبیعی"; badgeClass = "normal"; bmiColor = "#15803d";
+    } else if (bmi < 30) {
+      category = "اضافه وزن"; badgeClass = "over"; bmiColor = "#c2410c";
+    } else {
+      category = "چاقی"; badgeClass = "obese"; bmiColor = "#b91c1c";
+    }
+
+    bmiValue.textContent = bmi.toFixed(1);
+    bmiCategory.textContent = category;
+    bmiCategory.className = "badge " + badgeClass;
+    bmiValue.style.color = bmiColor;
+
+    normalRange.textContent = `${minNormal.toFixed(1)} تا ${maxNormal.toFixed(1)} کیلوگرم`;
+
+    const dailyCalories = weight * (gender === "male" ? 30 : 28);
+    dailyCaloriesEl.textContent = `${Math.round(dailyCalories).toLocaleString("fa-IR")} کالری`;
+
+    let diff = 0, diffMsg = "";
+    if (bmi < 18.5) { diff = minNormal - weight; diffMsg = "کمبود وزن داری"; }
+    else if (bmi >= 25) { diff = weight - maxNormal; diffMsg = "اضافه وزن داری"; }
+    else { diff = 0; diffMsg = "کمبود یا اضافه وزن نداری"; }
+
+    weightDiffEl.textContent = `${Math.abs(diff).toFixed(1)} کیلوگرم`;
+    weightDiffMsg.textContent = diffMsg;
+
+    let actionCalories = 0, actionMsg = "";
+    if (bmi < 18.5) { actionCalories = diff * 7700; actionMsg = "باید کالری بیشتری دریافت کنی"; }
+    else if (bmi >= 25) { actionCalories = diff * 7700; actionMsg = "باید کالری بسوزونی"; }
+    else { actionCalories = 0; actionMsg = "همین‌جوری که هستی خوبی"; }
+
+    calorieAction.textContent = `${Math.round(actionCalories).toLocaleString("fa-IR")} کالری`;
+    calorieActionMsg.textContent = actionMsg;
+
+    const selectedIntensity = intensity.options[intensity.selectedIndex];
+    const speed = parseFloat(selectedIntensity.dataset.speed);
+    const met = parseFloat(selectedIntensity.dataset.met);
+    const routeFactor = parseFloat(route.value);
+
+    let basePerMin = 0.0905 * weight + 0.116 * speed - 1.85;
+    if (basePerMin < 0) basePerMin = 0;
+
+    const skateCalories = basePerMin * duration * routeFactor;
+
+    skateCaloriesEl.textContent = `${Math.round(skateCalories).toLocaleString("fa-IR")} کالری`;
+    skateDetails.textContent = `${Math.round(duration).toLocaleString("fa-IR")} دقیقه، سرعت ${speed} km/h، MET ${met}، ضریب مسیر ${routeFactor}`;
+
+    if (bmi >= 25) {
+      if (skateCalories > 0) {
+        const days = Math.ceil(actionCalories / skateCalories);
+        daysToNormal.textContent = `${days.toLocaleString("fa-IR")} روز`;
+        daysMsg.textContent = `با ${Math.round(skateCalories).toLocaleString("fa-IR")} کالری در هر جلسه`;
+      } else {
+        daysToNormal.textContent = "—";
+        daysMsg.textContent = "کالری اسکیت قابل محاسبه نیست.";
+      }
+    } else if (bmi < 18.5) {
+      daysToNormal.textContent = "—";
+      daysMsg.textContent = "برای افزایش وزن، اسکیت کالری می‌سوزاند؛ نیاز به مازاد کالری غذایی داری.";
+    } else {
+      daysToNormal.textContent = "۰ روز";
+      daysMsg.textContent = "همین حالا در محدوده وزن طبیعی هستی.";
+    }
+
+    results.classList.remove("hidden");
+    results.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+</script>
+</body>
+</html>
